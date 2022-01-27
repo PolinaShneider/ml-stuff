@@ -31,4 +31,5 @@ FROM (SELECT * FROM dataprocessing_items items
 
      ) as data
 GROUP BY data.user_id
-ORDER BY data.user_id;
+ORDER BY data.user_id
+LIMIT 5;
