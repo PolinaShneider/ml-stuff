@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import psycopg2
+import copy
 import matplotlib.pyplot as plt
 from main import MF
 
@@ -14,9 +15,10 @@ R = np.array([
     [0, 1, 5, 4],
 ])
 
-select_query = "SELECT data.user_id, ARRAY_AGG( data.item_id ORDER BY data.user_id, data.item_id ) entities FROM (SELECT * FROM dataprocessing_items items JOIN workprogramsapp_prerequisitesofworkprogram prerequisites on items.id = prerequisites.workprogram_id JOIN workprogramsapp_workprogram program on program.id = prerequisites.workprogram_id JOIN workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id UNION ALL SELECT * FROM dataprocessing_items items JOIN workprogramsapp_outcomesofworkprogram outcomes on items.id = outcomes.item_id JOIN workprogramsapp_workprogram program on program.id = outcomes.workprogram_id JOIN workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id ) as data GROUP BY data.user_id ORDER BY data.user_id LIMIT 5";
+select_query = "SELECT data.user_id, ARRAY_AGG( data.item_id ORDER BY data.user_id, data.item_id ) entities FROM (SELECT * FROM dataprocessing_items items JOIN workprogramsapp_prerequisitesofworkprogram prerequisites on items.id = prerequisites.workprogram_id JOIN workprogramsapp_workprogram program on program.id = prerequisites.workprogram_id JOIN workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id UNION ALL SELECT * FROM dataprocessing_items items JOIN workprogramsapp_outcomesofworkprogram outcomes on items.id = outcomes.item_id JOIN workprogramsapp_workprogram program on program.id = outcomes.workprogram_id JOIN workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id ) as data GROUP BY data.user_id ORDER BY data.user_id LIMIT 5 OFFSET 50";
 unique_items = set()
 user_data = {}
+unique_users = []
 
 try:
     connection = psycopg2.connect(user="postgres",
@@ -44,7 +46,7 @@ finally:
         print("PostgreSQL connection is closed")
 
 unique_items = sorted(unique_items)
-R = np.zeros([len(user_data), len(unique_items)], dtype=np.int8)
+R = np.zeros([len(user_data), len(unique_items)], dtype=np.float64)
 
 for user, elems in user_data.items():
     res = []
@@ -52,25 +54,32 @@ for user, elems in user_data.items():
     user_data[user] = dict(zip(unique, counts))
 
 for index, key in enumerate(user_data.keys()):
+    unique_users.append(key)
     for elem_idx, elem in enumerate(unique_items):
         if elem in user_data[key]:
             R[index][elem_idx] = user_data[key][elem]
 
-print(R)
-mf = MF(R, K=2, alpha=0.1, beta=0.01, iterations=20)
+raw_R = copy.deepcopy(R)
+
+mf = MF(R, K=2, alpha=0.15, beta=0.01, iterations=20)
 training_process = mf.train()
 print()
-print("P x Q:")
-print(mf.full_matrix())
-print()
-print("Global bias:")
-print(mf.b)
-print()
-print("User bias:")
-print(mf.b_u)
-print()
-print("Item bias:")
-print(mf.b_i)
+# print("P x Q:")
+# print(mf.full_matrix())
+
+
+k = 10
+
+result = mf.full_matrix()
+for row_idx, row in enumerate(result):
+    print()
+    x = row
+    indices = np.argpartition(x, -k)[-k:]
+    print("prediction for user", unique_users[row_idx])
+    top_k = indices[np.argsort(x[indices])][::-1]
+    res = map(lambda x: unique_items[x], top_k)
+    print(list(res))
+
 
 x = [x for x, y in training_process]
 y = [y for x, y in training_process]
