@@ -11,7 +11,7 @@ from als import implicit_als, implicit_als_cg
 # LOAD AND PREP THE DATA: https://medium.com/radon-dev/als-implicit-collaborative-filtering-5ed653ba39fe
 # -------------------------
 
-raw_data = pd.read_table('data/usersha1-artmbid-artname-plays.tsv')
+raw_data = pd.read_table('data/output.tsv')
 # raw_data = raw_data.drop(raw_data.columns[1], axis=1)
 raw_data.columns = ['user', 'artist', 'plays']
 
@@ -26,6 +26,9 @@ data['artist_id'] = data['artist'].astype("category").cat.codes
 # readable form later.
 item_lookup = data[['artist_id', 'artist']].drop_duplicates()
 item_lookup['artist_id'] = item_lookup.artist_id.astype(str)
+
+user_lookup = data[['user_id', 'user']].drop_duplicates()
+user_lookup['user_id'] = user_lookup.user_id.astype(str)
 
 data = data.drop(['user', 'artist'], axis=1)
 
@@ -50,6 +53,7 @@ alpha_val = 15
 conf_data = (data_sparse * alpha_val).astype('double')
 user_vecs, item_vecs = implicit_als_cg(conf_data, iterations=20, features=20)
 
+combined = [user_vecs, item_vecs]
 # ------------------------------
 # FIND SIMILAR ITEMS
 # ------------------------------
@@ -57,7 +61,7 @@ user_vecs, item_vecs = implicit_als_cg(conf_data, iterations=20, features=20)
 # Let's find similar artists to Jay-Z.
 # Note that this ID might be different for you if you're using
 # the full dataset or if you've sliced it somehow.
-item_id = 1
+item_id = 9601
 
 # Get the item row for Jay-Z
 item_vec = item_vecs[item_id].T
@@ -80,8 +84,8 @@ similar = pd.DataFrame({'artist': artists, 'score': artist_scores})
 print('\n\nsimilar to item_id =', item_id, '\n\n', similar)
 
 # Let's say we want to recommend artists for user with ID 2023
-user_id = 3
-
+# user_id = user_lookup.user.loc[user_lookup.user_id == str(765)].iloc[0]
+user_id = 256
 # ------------------------------
 # GET ITEMS CONSUMED BY USER
 # ------------------------------

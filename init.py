@@ -15,7 +15,8 @@ R = np.array([
     [0, 1, 5, 4],
 ])
 
-select_query = "SELECT data.user_id, ARRAY_AGG( data.item_id ORDER BY data.user_id, data.item_id ) entities FROM (SELECT * FROM dataprocessing_items items JOIN workprogramsapp_prerequisitesofworkprogram prerequisites on items.id = prerequisites.workprogram_id JOIN workprogramsapp_workprogram program on program.id = prerequisites.workprogram_id JOIN workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id UNION ALL SELECT * FROM dataprocessing_items items JOIN workprogramsapp_outcomesofworkprogram outcomes on items.id = outcomes.item_id JOIN workprogramsapp_workprogram program on program.id = outcomes.workprogram_id JOIN workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id ) as data GROUP BY data.user_id ORDER BY data.user_id LIMIT 5 OFFSET 50";
+select_query = "SELECT data.user_id, ARRAY_AGG( data.item_id ORDER BY data.user_id, data.item_id ) entities FROM (SELECT * FROM dataprocessing_items items JOIN workprogramsapp_prerequisitesofworkprogram prerequisites on items.id = prerequisites.workprogram_id JOIN workprogramsapp_workprogram program on program.id = prerequisites.workprogram_id JOIN workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id UNION ALL SELECT * FROM dataprocessing_items items JOIN workprogramsapp_outcomesofworkprogram outcomes on items.id = outcomes.item_id JOIN workprogramsapp_workprogram program on program.id = outcomes.workprogram_id JOIN workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id ) as data GROUP BY data.user_id ORDER BY data.user_id LIMIT 3 OFFSET 50";
+all_entities_query = "SELECT id FROM public.dataprocessing_items ORDER BY id;"
 unique_items = set()
 user_data = {}
 unique_users = []
@@ -30,9 +31,17 @@ try:
     cursor = connection.cursor()
     cursor.execute(select_query)
     entities = cursor.fetchall()
+
+    cursor.execute(all_entities_query)
+    all_entities = cursor.fetchall()
+
+    for idx, el in enumerate(all_entities):
+        unique_items.add(el[0])
+
     for user_id, items in entities:
         unique_items.update(items)
         user_data[user_id] = items
+
 
 
 
@@ -68,7 +77,7 @@ print()
 # print(mf.full_matrix())
 
 
-k = 10
+k = 5
 
 result = mf.full_matrix()
 for row_idx, row in enumerate(result):
