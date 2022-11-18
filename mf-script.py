@@ -13,36 +13,38 @@ from als import implicit_als, implicit_als_cg
 
 raw_data = pd.read_table('data/output.tsv')
 # raw_data = raw_data.drop(raw_data.columns[1], axis=1)
-raw_data.columns = ['user', 'artist', 'plays']
+raw_data.columns = ['user', 'entity', 'frequency']
+
+entities_data = pd.read_table('data/entities.tsv')
 
 # Drop rows with missing values
 data = raw_data.dropna()
 
 # Convert artists names into numerical IDs
 data['user_id'] = data['user'].astype("category").cat.codes
-data['artist_id'] = data['artist'].astype("category").cat.codes
+data['entity_id'] = data['entity'].astype("category").cat.codes
 
 # Create a lookup frame so we can get the artist names back in
 # readable form later.
-item_lookup = data[['artist_id', 'artist']].drop_duplicates()
-item_lookup['artist_id'] = item_lookup.artist_id.astype(str)
+item_lookup = data[['entity_id', 'entity']].drop_duplicates()
+item_lookup['entity_id'] = item_lookup.entity_id.astype(str)
 
 user_lookup = data[['user_id', 'user']].drop_duplicates()
 user_lookup['user_id'] = user_lookup.user_id.astype(str)
 
-data = data.drop(['user', 'artist'], axis=1)
+data = data.drop(['user', 'entity'], axis=1)
 
 # Drop any rows that have 0 plays
-data = data.loc[data.plays != 0]
+data = data.loc[data.frequency != 0]
 
 # Create lists of all users, artists and plays
 users = list(np.sort(data.user_id.unique()))
-artists = list(np.sort(data.artist_id.unique()))
-plays = list(data.plays)
+artists = list(np.sort(data.entity_id.unique()))
+plays = list(data.frequency)
 
 # Get the rows and columns for our new matrix
 rows = data.user_id.astype(int)
-cols = data.artist_id.astype(int)
+cols = data.entity_id.astype(int)
 
 # Contruct a sparse matrix for our users and items containing number of plays
 data_sparse = sparse.csr_matrix((plays, (rows, cols)), shape=(len(users), len(artists)))
@@ -76,23 +78,23 @@ artist_scores = []
 
 # Get and print the actual artists names and scores
 for idx in top_10:
-    artists.append(item_lookup.artist.loc[item_lookup.artist_id == str(idx)].iloc[0])
+    artists.append(item_lookup.entity.loc[item_lookup.entity_id == str(idx)].iloc[0])
     artist_scores.append(scores[idx])
 
-similar = pd.DataFrame({'artist': artists, 'score': artist_scores})
+similar = pd.DataFrame({'entity_id': artists, 'score': artist_scores})
 
 print('\n\nsimilar to item_id =', item_id, '\n\n', similar)
 
 # Let's say we want to recommend artists for user with ID 2023
 # user_id = user_lookup.user.loc[user_lookup.user_id == str(765)].iloc[0]
-user_id = 256
+user_id = 701
 # ------------------------------
 # GET ITEMS CONSUMED BY USER
 # ------------------------------
 
 # Let's print out what the user has listened to
 consumed_idx = data_sparse[user_id, :].nonzero()[1].astype(str)
-consumed_items = item_lookup.loc[item_lookup.artist_id.isin(consumed_idx)]
+consumed_items = item_lookup.loc[item_lookup.entity_id.isin(consumed_idx)]
 print('\n\nconsumed_items by user_id =', user_id, '\n\n', consumed_items)
 
 
@@ -147,11 +149,11 @@ def recommend(user_id, data_sparse, user_vecs, item_vecs, item_lookup, num_items
 
     # Loop through our recommended artist indicies and look up the actial artist name
     for idx in item_idx:
-        artists.append(item_lookup.artist.loc[item_lookup.artist_id == str(idx)].iloc[0])
+        artists.append(item_lookup.entity.loc[item_lookup.entity_id == str(idx)].iloc[0])
         scores.append(recommend_vector[idx])
 
     # Create a new dataframe with recommended artist names and scores
-    recommendations = pd.DataFrame({'artist': artists, 'score': scores})
+    recommendations = pd.DataFrame({'entity_id': artists, 'score': scores})
 
     return recommendations
 
