@@ -1,8 +1,7 @@
 import csv
 import psycopg2
-import numpy as np
 
-select_query = "select id, name from dataprocessing_items;";
+select_query = "select id, name from dataprocessing_items where domain_id is not null order by id asc;";
 
 unique_items = set()
 user_data = {}
@@ -12,7 +11,7 @@ try:
                                   password="postgres",
                                   host="127.0.0.1",
                                   port="5432",
-                                  database="analytics_db")
+                                  database="postgres")
 
     cursor = connection.cursor()
     cursor.execute(select_query)

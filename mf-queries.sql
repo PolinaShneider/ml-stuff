@@ -1,6 +1,6 @@
 -- получить инфо по редакторам и созданным ими программам
 select authors, first_name, last_name, user_id, workprogram_id, title
-from public.workprogramsapp_workprogram_editors editors
+from workprogramsapp_workprogram_editors editors
          JOIN dataprocessing_user users on editors.user_id = users.id
          JOIN workprogramsapp_workprogram program on editors.workprogram_id = program.id
 WHERE authors like ('%' || last_name || '%');

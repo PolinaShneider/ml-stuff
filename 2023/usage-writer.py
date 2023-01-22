@@ -13,7 +13,7 @@ try:
                                   password="postgres",
                                   host="127.0.0.1",
                                   port="5432",
-                                  database="analytics_db")
+                                  database="postgres")
 
     cursor = connection.cursor()
     cursor.execute(select_query)
@@ -49,4 +49,5 @@ with open('./data/output.tsv', 'wt') as out_file:
         user_data[user] = dict(zip(unique, counts))
 
         for items in user_data[user].items():
+            print(user, items[0], items[1])
             tsv_writer.writerow([user, items[0], items[1]])
