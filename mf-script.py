@@ -63,7 +63,7 @@ combined = [user_vecs, item_vecs]
 # Let's find similar artists to Jay-Z.
 # Note that this ID might be different for you if you're using
 # the full dataset or if you've sliced it somehow.
-item_id = 9601
+item_id = 1180
 
 # Get the item row for Jay-Z
 item_vec = item_vecs[item_id].T

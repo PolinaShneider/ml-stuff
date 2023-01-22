@@ -19,35 +19,42 @@ WHERE di.id in (
 )
 ORDER BY id;
 
+
+select *
+from public.workprogramsapp_outcomesofworkprogram wo
+         join dataprocessing_items di on wo.item_id = di.id
+         join workprogramsapp_workprogram_editors ed on wo.id = ed.workprogram_id
+where domain_id = 17;
+
+
 -- получили результаты обучения одобренной РПД номер ... на джойнах
-SELECT
-    wif.workprogram_id,
-    ARRAY_AGG (
-        wif.feature
-        ORDER BY
-            wif.workprogram_id
-    ) features
+SELECT wif.workprogram_id,
+       ARRAY_AGG(
+               wif.feature
+               ORDER BY
+                   wif.workprogram_id
+           ) features
 FROM (SELECT wo.workprogram_id,
-       CASE
-           WHEN di.id in (
-               SELECT id
-               FROM public.dataprocessing_items di
-               --
-               WHERE di.id in (
-                   SELECT wo.item_id
-                   FROM public.workprogramsapp_outcomesofworkprogram wo
-                            JOIN workprogramsapp_expertise we on we.work_program_id = wo.workprogram_id
-                   WHERE we.expertise_status = 'AC'
-               )
-           ) THEN 1
-           ELSE 0
-           END feature
-FROM public.dataprocessing_items di
-JOIN public.workprogramsapp_outcomesofworkprogram wo on di.id = wo.item_id
-JOIN public.workprogramsapp_expertise we on we.work_program_id = wo.workprogram_id
-WHERE we.expertise_status = 'AC'
-GROUP BY wo.workprogram_id, di.id
-ORDER BY wo.workprogram_id, di.id) as wif
+             CASE
+                 WHEN di.id in (
+                     SELECT id
+                     FROM public.dataprocessing_items di
+                          --
+                     WHERE di.id in (
+                         SELECT wo.item_id
+                         FROM public.workprogramsapp_outcomesofworkprogram wo
+                                  JOIN workprogramsapp_expertise we on we.work_program_id = wo.workprogram_id
+                         WHERE we.expertise_status = 'AC'
+                     )
+                 ) THEN 1
+                 ELSE 0
+                 END feature
+      FROM public.dataprocessing_items di
+               JOIN public.workprogramsapp_outcomesofworkprogram wo on di.id = wo.item_id
+               JOIN public.workprogramsapp_expertise we on we.work_program_id = wo.workprogram_id
+      WHERE we.expertise_status = 'AC'
+      GROUP BY wo.workprogram_id, di.id
+      ORDER BY wo.workprogram_id, di.id) as wif
 GROUP BY wif.workprogram_id
 ORDER BY wif.workprogram_id;
 
@@ -64,7 +71,7 @@ FROM (SELECT wo.workprogram_id, di.id as entity_id
                JOIN public.workprogramsapp_outcomesofworkprogram wo on di.id = wo.item_id
                JOIN public.workprogramsapp_expertise we on we.work_program_id = wo.workprogram_id
       WHERE we.expertise_status = 'AC'
-) as wiei
+     ) as wiei
 GROUP BY wiei.workprogram_id
 ORDER BY wiei.workprogram_id;
 
