@@ -23,7 +23,27 @@ from (
                        on items.domain_id = dom.id
          where items.domain_id is not null) as data
 group by data.domain_id
-order by data.domain_id
+order by data.domain_id;
+
+-- Все названия учебных сущностей с агрегацией по домену
+select data.domain_id,
+       array_agg(
+               data.entity_name
+               order by
+                   data.entity_id,
+                   data.domain_id
+           ) as entities
+from (
+         select items.name as entity_name,
+                items.id   as entity_id,
+                dom.name   as domain_name,
+                dom.id     as domain_id
+         from dataprocessing_items as items
+                  join dataprocessing_domain as dom
+                       on items.domain_id = dom.id
+         where items.domain_id is not null) as data
+group by data.domain_id
+order by data.domain_id;
 
 
 -- Айдюки всех одобренных РПД
@@ -100,5 +120,7 @@ from (select data.user_id, array_agg(data.item_id order by data.user_id, data.it
             where items.domain_id is not null
               and we.expertise_status = 'AC') as data
       group by data.user_id
-      order by data.user_id) as by_editors
+      order by data.user_id) as by_editors;
 
+-- Получим описания всех одобренных РПД
+select id, /*title,*/ description /*, structural_unit_id*/ from workprogramsapp_workprogram ww where work_status = 'a' and description <> '' limit 10;
