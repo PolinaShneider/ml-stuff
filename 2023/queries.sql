@@ -66,7 +66,7 @@ order by workprogram_id;
 select data.user_id, array_agg(data.item_id order by data.user_id, data.item_id) entities
 from (select *
       from dataprocessing_items items
-               join workprogramsapp_prerequisitesofworkprogram prerequisites on items.id = prerequisites.workprogram_id
+               join workprogramsapp_prerequisitesofworkprogram prerequisites on items.id = prerequisites.item_id
                join workprogramsapp_workprogram program on program.id = prerequisites.workprogram_id
                join workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id
                join public.workprogramsapp_expertise we on program.id = we.work_program_id
@@ -80,7 +80,7 @@ order by data.user_id;
 select data.uid, array_agg(data.item_id order by data.uid, data.item_id) entities
 from (select du.id as uid, item_id
       from dataprocessing_items items
-               join workprogramsapp_prerequisitesofworkprogram prerequisites on items.id = prerequisites.workprogram_id
+               join workprogramsapp_prerequisitesofworkprogram prerequisites on items.id = prerequisites.item_id
                join workprogramsapp_workprogram program on program.id = prerequisites.workprogram_id
                join public.workprogramsapp_expertise we on program.id = we.work_program_id
                join dataprocessing_user du on program.authors like '%' || du.last_name || '%'
@@ -97,7 +97,7 @@ from (select data.uid, array_agg(data.item_id order by data.uid, data.item_id) e
       from (select du.id as uid, item_id
             from dataprocessing_items items
                      join workprogramsapp_prerequisitesofworkprogram prerequisites
-                          on items.id = prerequisites.workprogram_id
+                          on items.id = prerequisites.item_id
                      join workprogramsapp_workprogram program on program.id = prerequisites.workprogram_id
                      join public.workprogramsapp_expertise we on program.id = we.work_program_id
                      join dataprocessing_user du on program.authors like '%' || du.last_name || '%'
@@ -113,7 +113,7 @@ from (select data.user_id, array_agg(data.item_id order by data.user_id, data.it
       from (select *
             from dataprocessing_items items
                      join workprogramsapp_prerequisitesofworkprogram prerequisites
-                          on items.id = prerequisites.workprogram_id
+                          on items.id = prerequisites.item_id
                      join workprogramsapp_workprogram program on program.id = prerequisites.workprogram_id
                      join workprogramsapp_workprogram_editors editors on program.id = editors.workprogram_id
                      join public.workprogramsapp_expertise we on program.id = we.work_program_id
